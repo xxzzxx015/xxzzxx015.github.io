@@ -1,0 +1,77 @@
+/* ========================
+ * archivo: editar.html
+ * ======================== */
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Editar Mensaje</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    textarea { width: 100%; height: 200px; }
+    button { margin-top: 10px; padding: 10px 20px; margin-right: 10px; }
+  </style>
+</head>
+<body>
+
+  <h2>Editar mensaje de estatus personalizado</h2>
+
+  <form id="formulario">
+    <textarea id="mensaje-input" placeholder="Escribe aquí el nuevo mensaje HTML..."></textarea><br>
+    <button type="submit">Guardar mensaje</button>
+    <button type="button" id="restaurar">Restaurar mensaje por defecto</button>
+  </form>
+
+  <script>
+    const textarea = document.getElementById("mensaje-input");
+    const form = document.getElementById("formulario");
+    const restaurar = document.getElementById("restaurar");
+    const numeroRecibo = localStorage.getItem("numeroRecibo") || "IOE0930299907";
+
+    const mensajePorDefecto = `
+      <h3>Emitió Decisión de Aprobación En El Caso</h3>
+      <p>
+        En 12 de Marzo de 2025, aprobamos su Formulario I-765, Solicitud de Autorización de Empleo,
+        Número de Recibo <strong>{{NUMERO_RECIBO}}</strong>. Si no recibe su notificación para el 11 de Abril de 2025,
+        visite <a href="https://www.uscis.gov/e-request" target="_blank">www.uscis.gov/e-request</a>.
+        Si cambia de domicilio, visite 
+        <a href="https://www.uscis.gov/es/cambiodedireccion" target="_blank">www.uscis.gov/es/cambiodedireccion</a>.
+      </p>
+    `;
+
+    // Si no hay mensaje guardado, cargar desde mensaje.html
+    if (!localStorage.getItem("mensajeStatus")) {
+      fetch("mensaje.html")
+        .then(res => res.text())
+        .then(texto => {
+          localStorage.setItem("mensajeStatus", texto);
+          textarea.value = texto.replaceAll("{{NUMERO_RECIBO}}", numeroRecibo);
+        });
+    } else {
+      const actual = localStorage.getItem("mensajeStatus");
+      textarea.value = actual.replaceAll("{{NUMERO_RECIBO}}", numeroRecibo);
+    }
+
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      let nuevo = textarea.value.trim();
+      if (nuevo.length === 0) {
+        alert("Escribe un mensaje válido.");
+        return;
+      }
+      nuevo = nuevo.replaceAll(numeroRecibo, "{{NUMERO_RECIBO}}");
+      localStorage.setItem("mensajeStatus", nuevo);
+      alert("Mensaje actualizado correctamente.");
+    });
+
+    restaurar.addEventListener("click", () => {
+      if (confirm("¿Estás seguro de que quieres restaurar el mensaje por defecto?")) {
+        textarea.value = mensajePorDefecto.replaceAll("{{NUMERO_RECIBO}}", numeroRecibo);
+        localStorage.setItem("mensajeStatus", mensajePorDefecto);
+        alert("Mensaje restaurado al valor por defecto.");
+      }
+    });
+  </script>
+</body>
+</html>
